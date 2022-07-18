@@ -1,10 +1,13 @@
 const axios = require('axios')
 const { Telegraf } = require('telegraf')
 const fs = require('fs')
-
 require('dotenv').config()
 
+const express = require('express')
+const app = express()
+
 const bot = new Telegraf(process.env.BOT_TOKEN)
+const PORT = process.env.PORT || 3000
 
 const getAvailableTimes = async () => {
   try {
@@ -52,9 +55,7 @@ const controller = () => {}
 
 if (fs.existsSync('./ids.json')) {
   const ids = JSON.parse(fs.readFileSync('./ids.json'))
-  if (typeof ids !== 'Array') {
-    controller.ids = [JSON.parse(ids)]
-  } else controller.ids = JSON.parse(ids)
+  controller.ids = ids
 } else {
   controller.ids = []
 }
@@ -122,3 +123,11 @@ const main = async () => {
 }
 
 main().catch(console.log)
+
+app.get('/', async (req, res) => {
+  const available = await getAvailableTimes()
+  const formatted = formatAvailableTimes(available)
+  res.send(formatted)
+})
+
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`))

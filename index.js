@@ -113,11 +113,11 @@ const main = async () => {
 
     bot.launch()
 
-    setInterval(async (force) => {
+    setInterval(async () => {
       try {
         const available = await getAvailableTimes()
 
-        if (JSON.stringify(prev) !== JSON.stringify(available) || force) {
+        if (JSON.stringify(prev) !== JSON.stringify(available)) {
           prev = available
           controller.getIds().forEach(async (id) => {
             bot.telegram.sendMessage(id, '📅 New appointments available!')

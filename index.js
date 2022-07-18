@@ -108,7 +108,7 @@ const main = async () => {
     bot.hears('/list', async (ctx) => {
       const data = await getAvailableTimes()
       const formatted = formatAvailableTimes(data)
-      ctx.reply(formatted)
+      ctx.reply(formatted, { parse_mode: 'MarkdownV2' })
     })
 
     bot.launch()

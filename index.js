@@ -90,7 +90,6 @@ const main = async () => {
         path.join(__dirname, 'ids.json'),
         JSON.stringify(controller.getIds())
       )
-      notify(true)
       ctx.reply('👍')
     })
 
@@ -114,7 +113,7 @@ const main = async () => {
 
     bot.launch()
 
-    const notify = async (force) => {
+    setInterval(async (force) => {
       try {
         const available = await getAvailableTimes()
 
@@ -129,13 +128,10 @@ const main = async () => {
             })
           })
         }
-        setTimeout(notify, 1000 * 60 * 5)
       } catch (err) {
         throw err
       }
-    }
-
-    await notify()
+    }, 1000 * 60 * 5)
 
     // Enable graceful stop
     process.once('SIGINT', () => bot.stop('SIGINT'))

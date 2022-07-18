@@ -80,7 +80,7 @@ const main = async () => {
     )
     bot.help((ctx) =>
       ctx.reply(
-        'To be notified about any changes in the appointments, use /subscribe'
+        'To be notified about any changes in the appointments, use /subscribe\nTo get the list of available appointments, use /list\nTo unsubscribe, use /unsubscribe'
       )
     )
     bot.hears('/subscribe', async (ctx) => {
@@ -90,16 +90,35 @@ const main = async () => {
         path.join(__dirname, 'ids.json'),
         JSON.stringify(controller.getIds())
       )
+      notify(true)
       ctx.reply('👍')
+    })
+
+    bot.hears('/unsubscribe', async (ctx) => {
+      const chat = await ctx.getChat()
+      if (controller.getIds().includes(chat.id)) {
+        controller.ids = controller.ids.filter((id) => id !== chat.id)
+        fs.writeFileSync(
+          path.join(__dirname, 'ids.json'),
+          JSON.stringify(controller.getIds())
+        )
+      }
+      ctx.reply('👍')
+    })
+
+    bot.hears('/list', async (ctx) => {
+      const data = await getAvailableTimes()
+      const formatted = formatAvailableTimes(data)
+      ctx.reply(formatted)
     })
 
     bot.launch()
 
-    const notify = async () => {
+    const notify = async (force) => {
       try {
         const available = await getAvailableTimes()
 
-        if (JSON.stringify(prev) !== JSON.stringify(available)) {
+        if (JSON.stringify(prev) !== JSON.stringify(available) || force) {
           prev = available
           controller.getIds().forEach(async (id) => {
             bot.telegram.sendMessage(id, '📅 New appointments available!')

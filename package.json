@@ -4,7 +4,7 @@
   "description": "A small server app for sending updates on available dates at the embassy.",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",

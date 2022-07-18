@@ -125,9 +125,7 @@ const main = async () => {
 main().catch(console.log)
 
 app.get('/', async (req, res) => {
-  const available = await getAvailableTimes()
-  const formatted = formatAvailableTimes(available)
-  res.send(formatted)
+  res.sendFile(__dirname + '/index.html')
 })
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`))

@@ -1,6 +1,7 @@
 const axios = require('axios')
 const { Telegraf } = require('telegraf')
 const fs = require('fs')
+const path = require('path')
 require('dotenv').config()
 
 const express = require('express')
@@ -53,8 +54,8 @@ const formatAvailableTimes = (data) => {
 
 const controller = () => {}
 
-if (fs.existsSync('./ids.json')) {
-  const ids = JSON.parse(fs.readFileSync('./ids.json'))
+if (fs.existsSync(path.join(__dirname, 'ids.json'))) {
+  const ids = JSON.parse(path.join(__dirname, 'ids.json'))
   controller.ids = ids
 } else {
   controller.ids = []
@@ -85,7 +86,10 @@ const main = async () => {
     bot.hears('/subscribe', async (ctx) => {
       const chat = await ctx.getChat()
       if (!controller.getIds().includes(chat.id)) controller.addId(chat.id)
-      fs.writeFileSync('./ids.json', JSON.stringify(controller.getIds()))
+      fs.writeFileSync(
+        path.join(__dirname, 'ids.json'),
+        JSON.stringify(controller.getIds())
+      )
       ctx.reply('👍')
     })
 

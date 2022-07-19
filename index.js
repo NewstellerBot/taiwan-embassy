@@ -118,7 +118,7 @@ const main = async () => {
 
     bot.launch()
 
-    setInterval(async () => {
+    const notify = async () => {
       try {
         const available = await getAvailableTimes()
         console.log('Checking for new appointments')
@@ -138,7 +138,9 @@ const main = async () => {
       } catch (err) {
         throw err
       }
-    }, 1000 * 60 * 5)
+    }
+
+    setInterval(notify, 1000 * 60 * 5)
 
     // Enable graceful stop
     process.once('SIGINT', () => bot.stop('SIGINT'))

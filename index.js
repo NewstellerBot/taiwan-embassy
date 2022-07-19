@@ -73,7 +73,12 @@ controller.addId = (id) => {
 
 const main = async () => {
   try {
-    let prev = { date: '', time: '' }
+    let prev
+    if (fs.existsSync(path.join(__dirname, 'available.json'))) {
+      prev = JSON.parse(fs.readFileSync(path.join(__dirname, 'available.json')))
+    } else {
+      prev = {}
+    }
 
     bot.start((ctx) =>
       ctx.reply('Welcome!\nType /help to see available commands')
@@ -116,16 +121,18 @@ const main = async () => {
     setInterval(async () => {
       try {
         const available = await getAvailableTimes()
+        console.log('Checking for new appointments')
+        console.log('Prev: ', JSON.stringify(prev))
+        console.log('Available: ', JSON.stringify(available))
 
         if (JSON.stringify(prev) !== JSON.stringify(available)) {
           prev = available
+          fs.writeFileSync(
+            path.join(__dirname, 'available.json'),
+            JSON.stringify(prev)
+          )
           controller.getIds().forEach(async (id) => {
             bot.telegram.sendMessage(id, '📅 New appointments available!')
-            const available = await getAvailableTimes()
-            const formatted = formatAvailableTimes(available)
-            bot.telegram.sendMessage(id, formatted, {
-              parse_mode: 'MarkdownV2',
-            })
           })
         }
       } catch (err) {

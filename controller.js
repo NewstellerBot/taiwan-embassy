@@ -9,7 +9,7 @@ controller.getIds = () => {
 controller.addId = async (id) => {
   await query(`INSERT INTO ids (id) VALUES ('${id}');`)
   const newIds = await query('SELECT * FROM ids')
-  controller.ids = newIds.rows
+  controller.ids = newIds.rows.map((json) => json.id)
 }
 
 controller.getDates = async () => {
@@ -28,13 +28,13 @@ controller.saveDates = async (dates) => {
 controller.removeId = async (id) => {
   await query(`DELETE FROM ids WHERE id = '${id}';`)
   const newIds = await query('SELECT * FROM ids')
-  controller.ids = newIds.rows
+  controller.ids = newIds.rows.map((json) => json.id)
 }
 
 controller.init = async () => {
   const ids = await query('SELECT * FROM ids')
   const dates = await query('SELECT * FROM available')
-  controller.ids = ids.rows
+  controller.ids = ids.rows.map((json) => json.id)
   controller.dates = dates.rows
 }
 

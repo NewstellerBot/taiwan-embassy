@@ -10,12 +10,13 @@ module.exports = {
     ),
   subscribe: async (ctx) => {
     const chat = await ctx.getChat()
-    if (!controller.getIds().includes(chat.id)) controller.addId(chat.id)
+    if (!controller.getIds().includes(String(chat.id)))
+      controller.addId(chat.id)
     ctx.reply('👍')
   },
   unsubscribe: async (ctx) => {
     const chat = await ctx.getChat()
-    if (controller.getIds().includes(chat.id)) {
+    if (controller.getIds().includes(String(chat.id))) {
       controller.removeId(chat.id)
     }
     ctx.reply('👍')

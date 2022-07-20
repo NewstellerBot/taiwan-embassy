@@ -1,136 +1,51 @@
-const axios = require('axios')
 const { Telegraf } = require('telegraf')
-const fs = require('fs')
-const path = require('path')
+
 require('dotenv').config()
 
 const express = require('express')
 const app = express()
 
+const { query } = require('./db/index')
+
+const controller = require('./controller')
+
+const { start, help, subscribe, unsubscribe, list } = require('./bot/index')
+
+const getDates = require('./util/getDates')
+
 const bot = new Telegraf(process.env.BOT_TOKEN)
 const PORT = process.env.PORT || 3000
 
-const getAvailableTimes = async () => {
+const initDb = async () => {
   try {
-    const res = await axios.get(
-      'https://api.appointlet.com/bookables/164144/available_times?service=490015'
+    await query('CREATE TABLE IF NOT EXISTS ids (id VARCHAR(50) PRIMARY KEY);')
+    await query(
+      'CREATE TABLE IF NOT EXISTS available (date VARCHAR(50) PRIMARY KEY);'
     )
-
-    const data = res.data.map((d) => {
-      const date = new Date(d)
-      return {
-        date: date
-          .toLocaleDateString('pl', { timeZone: 'Europe/Warsaw' })
-          .replaceAll('.', '\\.'),
-        time: date
-          .toLocaleTimeString('pl', { timeZone: 'Europe/Warsaw' })
-          .slice(0, 5),
-      }
-    })
-    return data
-  } catch (error) {
-    throw error
+  } catch (err) {
+    throw err
   }
-}
-
-const formatAvailableTimes = (data) => {
-  const grouped = {}
-  data.forEach((entry) => {
-    if (!grouped[entry.date]) grouped[entry.date] = []
-    grouped[entry.date].push(entry.time)
-  })
-
-  let formatted = '*Currently available appointments:*\n\n'
-
-  for (const [date, times] of Object.entries(grouped)) {
-    formatted += `*${date}:*\n`
-    times.forEach((time) => {
-      formatted += `${time}\n`
-    })
-    formatted += '\n'
-  }
-  return formatted
-}
-
-const controller = () => {}
-
-if (fs.existsSync(path.join(__dirname, 'ids.json'))) {
-  const ids = JSON.parse(path.join(__dirname, 'ids.json'))
-  controller.ids = ids
-} else {
-  controller.ids = []
-}
-
-console.log(controller.ids)
-
-controller.getIds = () => {
-  return controller.ids
-}
-
-controller.addId = (id) => {
-  controller.ids.push(id)
 }
 
 const main = async () => {
   try {
-    let prev
-    if (fs.existsSync(path.join(__dirname, 'available.json'))) {
-      prev = JSON.parse(fs.readFileSync(path.join(__dirname, 'available.json')))
-    } else {
-      prev = {}
-    }
+    await initDb()
+    await controller.init()
 
-    bot.start((ctx) =>
-      ctx.reply('Welcome!\nType /help to see available commands')
-    )
-    bot.help((ctx) =>
-      ctx.reply(
-        'To be notified about any changes in the appointments, use /subscribe\nTo get the list of available appointments, use /list\nTo unsubscribe, use /unsubscribe'
-      )
-    )
-    bot.hears('/subscribe', async (ctx) => {
-      const chat = await ctx.getChat()
-      if (!controller.getIds().includes(chat.id)) controller.addId(chat.id)
-      fs.writeFileSync(
-        path.join(__dirname, 'ids.json'),
-        JSON.stringify(controller.getIds())
-      )
-      ctx.reply('👍')
-    })
-
-    bot.hears('/unsubscribe', async (ctx) => {
-      const chat = await ctx.getChat()
-      if (controller.getIds().includes(chat.id)) {
-        controller.ids = controller.ids.filter((id) => id !== chat.id)
-        fs.writeFileSync(
-          path.join(__dirname, 'ids.json'),
-          JSON.stringify(controller.getIds())
-        )
-      }
-      ctx.reply('👍')
-    })
-
-    bot.hears('/list', async (ctx) => {
-      const data = await getAvailableTimes()
-      const formatted = formatAvailableTimes(data)
-      ctx.reply(formatted, { parse_mode: 'MarkdownV2' })
-    })
-
+    bot.start(start)
+    bot.help(help)
+    bot.hears('/subscribe', subscribe)
+    bot.hears('/unsubscribe', unsubscribe)
+    bot.hears('/list', list)
     bot.launch()
 
     const notify = async () => {
       try {
-        const available = await getAvailableTimes()
-        console.log('Checking for new appointments')
-        console.log('Prev: ', JSON.stringify(prev))
-        console.log('Available: ', JSON.stringify(available))
-
-        if (JSON.stringify(prev) !== JSON.stringify(available)) {
-          prev = available
-          fs.writeFileSync(
-            path.join(__dirname, 'available.json'),
-            JSON.stringify(prev)
-          )
+        const available = await getDates()
+        if (
+          JSON.stringify(controller.getDates()) !== JSON.stringify(available)
+        ) {
+          controller.saveDates(available)
           controller.getIds().forEach(async (id) => {
             bot.telegram.sendMessage(id, '📅 New appointments available!')
           })

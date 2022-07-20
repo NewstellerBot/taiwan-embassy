@@ -1,4 +1,5 @@
 const { query } = require('./db/index')
+const getDates = require('./util/getDates')
 
 const controller = () => {}
 
@@ -12,8 +13,8 @@ controller.addId = async (id) => {
   controller.ids = newIds.rows.map((json) => json.id)
 }
 
-controller.getDates = async () => {
-  return controller.times
+controller.getDates = () => {
+  return controller.dates
 }
 
 controller.saveDates = async (dates) => {
@@ -33,9 +34,9 @@ controller.removeId = async (id) => {
 
 controller.init = async () => {
   const ids = await query('SELECT * FROM ids')
-  const dates = await query('SELECT * FROM available')
+  const dates = await getDates()
   controller.ids = ids.rows.map((json) => json.id)
-  controller.dates = dates.rows
+  controller.dates = dates
 }
 
 module.exports = controller

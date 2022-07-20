@@ -21,8 +21,8 @@ module.exports = {
     ctx.reply('👍')
   },
   list: async (ctx) => {
-    const data = await getAvailableTimes()
-    const formatted = formatAvailableTimes(data)
+    const data = await getDates()
+    const formatted = formatDates(data)
     ctx.reply(formatted, { parse_mode: 'MarkdownV2' })
   },
 }

@@ -32,7 +32,6 @@ controller.removeId = async (id) => {
 }
 
 controller.init = async () => {
-  console.log(query)
   const ids = await query('SELECT * FROM ids')
   const dates = await query('SELECT * FROM available')
   controller.ids = ids

@@ -1,5 +1,4 @@
 const formatDates = (data) => {
-  console.log(data)
   const formattedData = data.map((d) => {
     const date = new Date(d)
     return {

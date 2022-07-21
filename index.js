@@ -55,7 +55,7 @@ const main = async () => {
       }
     }
 
-    setInterval(notify, 1000 * 60 * 5)
+    setInterval(notify, 1000 * 5 * 60)
 
     // Enable graceful stop
     process.once('SIGINT', () => bot.stop('SIGINT'))

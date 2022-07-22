@@ -22,8 +22,7 @@ controller.saveDates = async (dates) => {
   dates.forEach(async (date) => {
     await query(`INSERT INTO available (date) VALUES ('${date}');`)
   })
-  const newDates = await query('SELECT * FROM available')
-  controller.dates = newDates.rows
+  controller.dates = dates
 }
 
 controller.removeId = async (id) => {
